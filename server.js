@@ -8,6 +8,7 @@ const app = express();
 const port = process.env.PORT || 3000;
 
 app.use(bodyParser.json());
+app.use(express.static(path.join(__dirname)));
 
 async function urlToPdf(url, outputFolder = path.join(__dirname, 'pdfs')) {
     try {
@@ -43,6 +44,10 @@ app.post('/convert', async (req, res) => {
     } else {
         res.json({ message: 'Error converting URL to PDF' });
     }
+});
+
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'index.html'));
 });
 
 app.listen(port, () => {
