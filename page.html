@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>URL to PDF Converter</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            text-align: center;
+            line-height: 1.6;
+        }
+        textarea {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            box-sizing: border-box;
+            height: 100px;
+        }
+        button {
+            background-color: #4CAF50;
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin: 10px 0;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        #status {
+            margin-top: 10px;
+            font-weight: bold;
+        }
+        #preview {
+            max-width: 100%;
+            margin-top: 20px;
+            border: 1px solid #ddd;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <h1>URL to PDF Converter</h1>
+    <p>Enter website URLs (one per line) to convert to PDF</p>
+    <textarea id="urlInput" placeholder="https://example.com&#10;https://example2.com" required></textarea>
+    <button id="convertButton">Convert to PDF</button>
+    <div id="status"></div>
+
+    <script>
+        const { jsPDF } = window.jspdf;
+
+        async function convertUrlsToPdf() {
+            const urlInput = document.getElementById('urlInput').value;
+            const statusDiv = document.getElementById('status');
+            const urls = urlInput.trim().split('\n');
+
+            // Basic URL validation
+            if (urls.length === 0) {
+                statusDiv.textContent = 'Please enter at least one URL';
+                return;
+            }
+
+            statusDiv.textContent = 'Generating PDFs...';
+
+            for (const url of urls) {
+                try {
+                    // Use CORS proxy to fetch the content
+                    const corsProxy = 'https://api.allorigins.win/raw?url=';
+                    const response = await fetch(corsProxy + encodeURIComponent(url));
+                    const htmlContent = await response.text();
+
+                    // Create a temporary div to hold the fetched content
+                    const tempDiv = document.createElement('div');
+                    tempDiv.innerHTML = htmlContent;
+                    document.body.appendChild(tempDiv);
+                    tempDiv.style.position = 'absolute';
+                    tempDiv.style.left = '-9999px';
+
+                    // Capture the entire content
+                    const canvas = await html2canvas(tempDiv, {
+                        scale: 1,
+                        useCORS: true,
+                        logging: false,
+                        allowTaint: true
+                    });
+
+                    // Remove the temporary div
+                    document.body.removeChild(tempDiv);
+
+                    // Create PDF
+                    const pdf = new jsPDF('p', 'mm', 'a4');
+                    const imgData = canvas.toDataURL('image/jpeg', 1.0);
+                    const imgProps = pdf.getImageProperties(imgData);
+                    const pdfWidth = pdf.internal.pageSize.getWidth();
+                    const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+
+                    pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
+
+                    // Generate filename from URL
+                    const filename = generateFilename(url);
+
+                    // Save PDF
+                    pdf.save(filename);
+
+                    statusDiv.textContent = `PDF generated: ${filename}`;
+                } catch (error) {
+                    console.error('Conversion error:', error);
+                    statusDiv.textContent = 'Error converting URL to PDF. Check console for details.';
+                }
+            }
+        }
+
+        function generateFilename(url) {
+            // Remove the base URL and the numeric part
+            const baseUrl = 'https://www.wansquare.com/';
+            const cleanedUrl = url.replace(baseUrl, '').replace(/\d+-\d+-/, '').replace(/-/g, ' ').replace('.html', '');
+            return `${cleanedUrl}.pdf`;
+        }
+
+        document.getElementById('convertButton').addEventListener('click', convertUrlsToPdf);
+    </script>
+</body>
+</html>
