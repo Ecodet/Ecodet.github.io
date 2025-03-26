@@ -29,7 +29,14 @@
                     body: JSON.stringify({ url })
                 });
                 const data = await response.json();
-                responseDiv.innerHTML = `<p>${data.message}</p>`;
+
+                if (data.fileUrl) {
+                    responseDiv.innerHTML = `
+                        <p>Conversion successful! <a href="${data.fileUrl}" download>Click here to download the PDF</a></p>
+                    `;
+                } else {
+                    responseDiv.innerHTML = `<p>${data.message}</p>`;
+                }
             } catch (error) {
                 responseDiv.innerHTML = `<p>Error: ${error.message}</p>`;
             }

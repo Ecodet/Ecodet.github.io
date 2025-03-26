@@ -40,21 +40,15 @@ app.post('/convert', async (req, res) => {
     const { url } = req.body;
     const pdfPath = await urlToPdf(url);
     if (pdfPath) {
-        const filename = path.basename(pdfPath);
-        res.json({ message: `PDF generated successfully.`, downloadUrl: `/download/${filename}` });
+        res.download(pdfPath, path.basename(pdfPath), (err) => {
+            if (err) {
+                console.error('Error sending file:', err);
+                res.status(500).send('Error downloading the file.');
+            }
+        });
     } else {
-        res.json({ message: 'Error converting URL to PDF' });
+        res.status(500).json({ message: 'Error converting URL to PDF' });
     }
-});
-
-app.get('/download/:filename', (req, res) => {
-    const filename = req.params.filename;
-    const filePath = path.join(__dirname, 'pdfs', filename);
-    res.download(filePath, (err) => {
-        if (err) {
-            res.status(500).send('Could not download the file.');
-        }
-    });
 });
 
 app.get('/', (req, res) => {
