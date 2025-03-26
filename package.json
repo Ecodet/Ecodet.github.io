@@ -1,0 +1,15 @@
+{
+    "name": "puppeteer-pdf-converter",
+    "version": "1.0.0",
+    "description": "Convert URLs to PDFs using Puppeteer",
+    "main": "server.js",
+    "scripts": {
+      "start": "node server.js"
+    },
+    "dependencies": {
+      "express": "^4.17.1",
+      "body-parser": "^1.19.0",
+      "puppeteer": "^10.0.0"
+    }
+  }
+  
