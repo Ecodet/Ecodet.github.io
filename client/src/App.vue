@@ -40,7 +40,7 @@ export default {
 
       for (let url of urlList) {
         console.log("Requesting screenshot for", url);
-        const res = await fetch("http://localhost:5000/screenshot", {
+        const res = await fetch("https://ecodet-github-io.onrender.com/screenshot", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
