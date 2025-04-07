@@ -5,7 +5,12 @@ const cors  = require('cors');
 const app = express();
 
 app.use('/static', express.static(path.join(__dirname, 'public')));
-app.use(cors()); // Enable CORS
+// app.use(cors()); // Enable CORS
+app.use(cors({
+    origin: '*', // Allow all origins
+    methods: ['GET', 'POST'], // Allow these HTTP methods
+    allowedHeaders: ['Content-Type', 'Authorization'] // Allow these headers
+  }));
 app.use(express.json());
 
 app.post('/screenshot', async (req, res) => {
@@ -40,6 +45,8 @@ app.post('/screenshot', async (req, res) => {
     // Send the PDF file as the response
     res.end(pdfBuffer);
 });
+
+
 
 app.listen(5000, '0.0.0.0', () => {
     console.log('Server is running on port 5000');
