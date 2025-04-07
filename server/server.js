@@ -6,10 +6,9 @@ const app = express();
 
 app.use('/static', express.static(path.join(__dirname, 'public')));
 // app.use(cors()); // Enable CORS
+// Allow requests from your frontend origin
 app.use(cors({
-    origin: '*', // Allow all origins
-    methods: ['GET', 'POST'], // Allow these HTTP methods
-    allowedHeaders: ['Content-Type', 'Authorization'] // Allow these headers
+    origin: 'https://ecodet-github-io.onrender.com'
   }));
 app.use(express.json());
 
