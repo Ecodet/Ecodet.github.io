@@ -6,6 +6,7 @@ const fs = require('fs');
 const app = express();
 const port = process.env.PORT || 3000;
 const cors = require('cors');
+
 app.use(cors());
 
 // Ensure the 'pdfs' directory exists
@@ -28,53 +29,61 @@ app.get('/', (req, res) => {
 // API endpoint to convert URL to PDF
 app.post('/convert', async (req, res) => {
   try {
-    const { url } = req.body;
-    
-    if (!url) {
-      return res.status(400).json({ error: 'URL is required' });
+    const { urls } = req.body;
+
+    if (!Array.isArray(urls) || urls.length === 0) {
+      return res.status(400).json({ error: 'At least one URL is required' });
     }
-    
-    // Validate URL format
-    try {
-      new URL(url);
-    } catch (error) {
-      return res.status(400).json({ error: 'Invalid URL format' });
+
+    function cleanFilenameFromUrl(url) {
+      let slug = url.split("/").filter(Boolean).pop();
+      // Remove .html or any other extension at the end
+      slug = slug.replace(/\.[a-zA-Z0-9]+$/, "");
+      // Remove leading numbers and dash
+      const noNumbers_ = slug.replace(/^\d+-/, "");
+      const noNumbers = noNumbers_.replace(/^\d+/, "");
+      // Replace dashes with spaces
+      const withSpaces = noNumbers.replace(/-/g, " ");
+      // Capitalize first letter (optional)
+      const capitalized = withSpaces.charAt(0).toUpperCase() + withSpaces.slice(1);
+      return `${capitalized}.pdf`;
     }
-    
-    // Generate a filename based on the URL and timestamp
-    const filename = `${encodeURIComponent(url.replace(/[^a-zA-Z0-9]/g, '_').substring(0, 100))}_${Date.now()}.pdf`;
-    const outputPath = path.join(pdfDir, filename);
-    
-    // Launch browser and create PDF
+
+    const pdfUrls = [];
     const browser = await puppeteer.launch({
       headless: true,
       args: ['--no-sandbox', '--disable-setuid-sandbox']
     });
-    
-    const page = await browser.newPage();
-    await page.goto(url, { waitUntil: 'networkidle2', timeout: 60000 });
-    
-    await page.pdf({
-      path: outputPath,
-      format: 'A4',
-      printBackground: true,
-      margin: {
-        top: '20px',
-        right: '20px',
-        bottom: '20px',
-        left: '20px'
+
+    for (const url of urls) {
+      try {
+        new URL(url); // validate
+        const filename = cleanFilenameFromUrl(url);
+        const outputPath = path.join(pdfDir, filename);
+        const page = await browser.newPage();
+        await page.goto(url, { waitUntil: 'networkidle2', timeout: 60000 });
+        await page.pdf({
+          path: outputPath,
+          format: 'A4',
+          printBackground: true,
+          margin: { top: '20px', right: '20px', bottom: '20px', left: '20px' }
+        });
+        pdfUrls.push(`/pdfs/${filename}`);
+      } catch (err) {
+        console.warn(`Failed to process ${url}:`, err.message);
       }
-    });
-    
+    }
+
     await browser.close();
-    
-    // Return the PDF file URL
-    const pdfUrl = `/pdfs/${filename}`;
-    res.json({ success: true, pdfUrl });
-    
+
+    if (pdfUrls.length === 0) {
+      return res.status(500).json({ error: 'No URLs could be converted.' });
+    }
+
+    res.json({ success: true, pdfUrls });
   } catch (error) {
-    console.error('PDF conversion error:', error);
-    res.status(500).json({ error: 'Failed to convert URL to PDF', details: error.message });
+    console.error('Error processing request:', error);
+    res.status(500).json({ error: 'An error occurred while processing the request.' });
   }
 });
 

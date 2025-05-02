@@ -30,10 +30,11 @@
     
     <form id="convertForm" class="mb-6">
       <div class="mb-4">
-        <label for="url" class="block text-gray-700 text-sm font-bold mb-2">Enter URL:</label>
-        <input type="url" id="url" name="url" required
-               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-               placeholder="https://example.com">
+        <label for="url" class="block text-gray-700 text-sm font-bold mb-2">Enter URLs (one per line):</label>
+<textarea id="url" name="url" required
+          class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          placeholder="https://example.com&#10;https://another.com"
+          rows="5"></textarea>
       </div>
       
       <button type="submit" 
@@ -43,17 +44,11 @@
     </form>
     
     <div id="loader" class="loader"></div>
-    
+
     <div id="result" class="hidden">
       <div class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-4" role="alert">
         <p>PDF generated successfully!</p>
       </div>
-      
-      <div class="flex flex-col items-center">
-        <a id="downloadLink" href="#" 
-           class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-md mb-4 text-center inline-block">
-        Download PDF
-      </a>
         
         <button id="convertAnother" 
                 class="text-blue-500 hover:text-blue-700 underline">
@@ -74,7 +69,6 @@
       const result = document.getElementById('result');
       const error = document.getElementById('error');
       const errorMessage = document.getElementById('errorMessage');
-      const downloadLink = document.getElementById('downloadLink');
       const convertAnother = document.getElementById('convertAnother');
       
       convertForm.addEventListener('submit', async (e) => {
@@ -86,18 +80,21 @@
         
         // Show loader
         loader.style.display = 'block';
-        
-        const url = document.getElementById('url').value;
+        const urlInput = document.getElementById('url');
+        const urls = urlInput.value
+          .split('\n')
+          .map(u => u.trim())
+          .filter(u => u.length > 0);
         
         try {
 
-          const response = await fetch('https://createpdfsforanne.onrender.com/convert', {
+          const response = await fetch('/convert', {
   
             method: 'POST',
             headers: {
               'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ url })
+            body: JSON.stringify({ urls })
           });
           
           const data = await response.json();
@@ -107,7 +104,6 @@
             loader.style.display = 'none';
             
             // Show result
-            downloadLink.href = data.pdfUrl; // Just set the link
             result.classList.remove('hidden');
             
             // Hide form
