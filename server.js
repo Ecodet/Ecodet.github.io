@@ -68,7 +68,7 @@ app.post('/convert', async (req, res) => {
           printBackground: true,
           margin: { top: '20px', right: '20px', bottom: '20px', left: '20px' }
         });
-        pdfUrls.push(`/pdfs/${filename}`);
+        pdfUrls.push(outputPath);
       } catch (err) {
         console.warn(`Failed to process ${url}:`, err.message);
       }
@@ -80,7 +80,19 @@ app.post('/convert', async (req, res) => {
       return res.status(500).json({ error: 'No URLs could be converted.' });
     }
 
-    res.json({ success: true, pdfUrls });
+    // Send the first PDF as a download
+    res.download(pdfUrls[0], (err) => {
+      if (err) {
+        console.error('Error sending file:', err);
+        res.status(500).json({ error: 'Failed to send file.' });
+      }
+      // Clean up the generated PDFs after sending
+      pdfUrls.forEach(pdfPath => {
+        fs.unlink(pdfPath, (err) => {
+          if (err) console.error('Error deleting file:', err);
+        });
+      });
+    });
   } catch (error) {
     console.error('Error processing request:', error);
     res.status(500).json({ error: 'An error occurred while processing the request.' });

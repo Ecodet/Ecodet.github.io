@@ -1,4 +1,3 @@
-<!-- public/index.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -17,7 +16,7 @@
       margin: 20px auto;
       display: none;
     }
-    
+
     @keyframes spin {
       0% { transform: rotate(0deg); }
       100% { transform: rotate(360deg); }
@@ -27,41 +26,40 @@
 <body class="bg-gray-100 min-h-screen flex flex-col items-center pt-10">
   <div class="max-w-md w-full bg-white rounded-lg shadow-md p-6">
     <h1 class="text-2xl font-bold text-center mb-6">URL to PDF Converter</h1>
-    
+
     <form id="convertForm" class="mb-6">
       <div class="mb-4">
         <label for="url" class="block text-gray-700 text-sm font-bold mb-2">Enter URLs (one per line):</label>
-<textarea id="url" name="url" required
+        <textarea id="url" name="url" required
           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
           placeholder="https://example.com&#10;https://another.com"
           rows="5"></textarea>
       </div>
-      
-      <button type="submit" 
+
+      <button type="submit"
               class="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
         Convert to PDF
       </button>
     </form>
-    
+
     <div id="loader" class="loader"></div>
 
     <div id="result" class="hidden">
       <div class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-4" role="alert">
         <p>PDF generated successfully!</p>
       </div>
-        
-        <button id="convertAnother" 
-                class="text-blue-500 hover:text-blue-700 underline">
-          Convert another URL
-        </button>
-      </div>
+
+      <button id="convertAnother"
+              class="text-blue-500 hover:text-blue-700 underline">
+        Convert another URL
+      </button>
     </div>
-    
+
     <div id="error" class="hidden bg-red-100 border-l-4 border-red-500 text-red-700 p-4" role="alert">
       <p id="errorMessage"></p>
     </div>
   </div>
-  
+
   <script>
     document.addEventListener('DOMContentLoaded', () => {
       const convertForm = document.getElementById('convertForm');
@@ -70,14 +68,14 @@
       const error = document.getElementById('error');
       const errorMessage = document.getElementById('errorMessage');
       const convertAnother = document.getElementById('convertAnother');
-      
+
       convertForm.addEventListener('submit', async (e) => {
         e.preventDefault();
-        
+
         // Reset UI
         result.classList.add('hidden');
         error.classList.add('hidden');
-        
+
         // Show loader
         loader.style.display = 'block';
         const urlInput = document.getElementById('url');
@@ -85,50 +83,57 @@
           .split('\n')
           .map(u => u.trim())
           .filter(u => u.length > 0);
-        
-        try {
 
+        try {
           const response = await fetch('/convert', {
-  
             method: 'POST',
             headers: {
               'Content-Type': 'application/json'
             },
             body: JSON.stringify({ urls })
           });
-          
-          const data = await response.json();
-          
+
           if (response.ok) {
             // Hide loader
             loader.style.display = 'none';
-            
+
             // Show result
             result.classList.remove('hidden');
-            
+
             // Hide form
             convertForm.classList.add('hidden');
-          
+
+            // Trigger download
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.style.display = 'none';
+            a.href = url;
+            a.download = 'converted.pdf'; // Set the desired filename
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
           } else {
+            const data = await response.json();
             throw new Error(data.error || 'Failed to convert URL to PDF');
           }
         } catch (err) {
           // Hide loader
           loader.style.display = 'none';
-          
+
           // Show error
           errorMessage.textContent = err.message;
           error.classList.remove('hidden');
         }
       });
-      
+
       convertAnother.addEventListener('click', () => {
         // Reset form
         convertForm.reset();
-        
+
         // Show form
         convertForm.classList.remove('hidden');
-        
+
         // Hide result
         result.classList.add('hidden');
       });
