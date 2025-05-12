@@ -39,7 +39,9 @@ app.post('/convert', async (req, res) => {
         function cleanFilenameFromUrl(url) {
             let slug = url.split("/").filter(Boolean).pop();
             // Remove .html or any other extension at the end
-            slug = slug.replace(/\.[a-zA-Z0-9]+$/, "");
+            // Use a regular expression to remove everything after .html
+            slug = slug.replace(/\.html.*$/, "");
+            
             // Remove leading numbers and dash
             const noNumbers = slug.replace(/^\d+-/, "").replace(/^\d+/, "");
             // Replace dashes with spaces
