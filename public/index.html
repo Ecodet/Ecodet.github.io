@@ -22,47 +22,38 @@
       100% { transform: rotate(360deg); }
     }
 
-    .background-image {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      overflow: hidden;
-      z-index: -1;
-    }
-
-    .background-image img {
-      position: absolute;
-      max-width: 100px;
-      left: 0;
-      top: 0;
-    }
-
     .container {
       position: relative;
       display: flex;
       justify-content: center;
-      align-items: center;
-      height: 100vh;
-      overflow: hidden;
+      align-items: flex-start; /* Align items to the start to allow scrolling */
+      max-height: 100vh; /* Set a maximum height */
+      overflow-y: auto; /* Enable vertical scrolling */
+      padding: 20px; /* Add some padding for better appearance */
+      box-sizing: border-box; /* Include padding in the element's total width and height */
+    }
+
+    textarea {
+      min-height: 50px;
+      resize: none;
+      overflow-y: hidden;
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
     }
   </style>
 </head>
 <body class="bg-gray-100 min-h-screen flex flex-col items-center pt-10">
   <div class="container">
-    <div class="background-image">
-      <img src="grey-cat-looking-at-camera-inside-a-home.jpg" alt="Wandering Background Image">
-    </div>
     <div class="max-w-md w-full bg-white rounded-lg shadow-md p-6 relative">
       <h1 class="text-2xl font-bold text-center mb-6">⭐ Bonjour Anne ⭐</h1>
       <form id="convertForm" class="mb-6">
         <div class="mb-4">
           <label for="url" class="block text-gray-700 text-sm font-bold mb-2">Colle les liens des articles ci-dessous :</label>
           <textarea id="url" name="url" required
-            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder="https://www.wansquare.com/article1&#10;https://www.wansquare.com/article2&#10;..."
-            rows="6"></textarea>
+            class="w-full py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            placeholder="https://www.wansquare.com/article1&#10;https://www.wansquare.com/article2&#10;..."></textarea>
         </div>
         <button type="submit"
           class="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
@@ -86,17 +77,28 @@
   </div>
 
   <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const textarea = document.getElementById('url');
 
-    // Add a bullet point only when something is pasted, not written manually
+      textarea.addEventListener('input', function() {
+        this.style.height = 'auto'; // Reset the height to auto to recalculate
+        this.style.height = (this.scrollHeight) + 'px'; // Set the height to the scroll height
+      });
 
-    document.getElementById('url').addEventListener('paste', function(event) {
-      event.preventDefault();
-      const paste = (event.clipboardData || window.clipboardData).getData('text');
-      const urls = paste.split('\n').map(url => url.trim()).filter(url => url.length > 0);
-      const currentValue = this.value.trim();
-      this.value = currentValue + (currentValue ? '\n' : '') + urls.map(url => `• ${url}`).join('\n') + '\n';
-    });
-    document.addEventListener('DOMContentLoaded', () => {
+      // Trigger the event once to set initial height
+      textarea.dispatchEvent(new Event('input'));
+
+      // Add a bullet point only when something is pasted, not written manually
+      document.getElementById('url').addEventListener('paste', function(event) {
+        event.preventDefault();
+        const paste = (event.clipboardData || window.clipboardData).getData('text');
+        const urls = paste.split('\n').map(url => url.trim()).filter(url => url.length > 0);
+        const currentValue = this.value.trim();
+        this.value = currentValue + (currentValue ? '\n' : '') + urls.map(url => `• ${url}`).join('\n') + '\n';
+        // Trigger input event to adjust height after pasting
+        this.dispatchEvent(new Event('input'));
+      });
+
       const convertForm = document.getElementById('convertForm');
       const loader = document.getElementById('loader');
       const result = document.getElementById('result');
@@ -162,48 +164,6 @@
         convertForm.classList.remove('hidden');
         result.classList.add('hidden');
       });
-
-      // DVD Logo-style bouncing image
-      function moveImageLikeDVDLogo() {
-        const img = document.querySelector('.background-image img');
-        const imgWidth = img.offsetWidth;
-        const imgHeight = img.offsetHeight;
-
-        let position = {
-          x: Math.random() * (window.innerWidth - imgWidth),
-          y: Math.random() * (window.innerHeight - imgHeight)
-        };
-
-        let velocity = {
-          x: 1 + Math.random() * 2,
-          y: 1 + Math.random() * 2
-        };
-
-        img.style.left = `${position.x}px`;
-        img.style.top = `${position.y}px`;
-
-        function update() {
-          if (position.x <= 0 || position.x + imgWidth >= window.innerWidth) {
-            velocity.x *= -1;
-          }
-
-          if (position.y <= 0 || position.y + imgHeight >= window.innerHeight) {
-            velocity.y *= -1;
-          }
-
-          position.x += velocity.x;
-          position.y += velocity.y;
-
-          img.style.left = `${position.x}px`;
-          img.style.top = `${position.y}px`;
-
-          requestAnimationFrame(update);
-        }
-
-        update();
-      }
-
-      moveImageLikeDVDLogo();
     });
   </script>
 </body>
