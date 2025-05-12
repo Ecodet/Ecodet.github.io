@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>URL to PDF Converter</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>je sais pas Ankor</title>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
   <style>
     .loader {
@@ -21,42 +21,67 @@
       0% { transform: rotate(0deg); }
       100% { transform: rotate(360deg); }
     }
+
+    .background-image {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      z-index: -1;
+    }
+
+    .background-image img {
+      position: absolute;
+      max-width: 100px;
+      left: 0;
+      top: 0;
+    }
+
+    .container {
+      position: relative;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      overflow: hidden;
+    }
   </style>
 </head>
 <body class="bg-gray-100 min-h-screen flex flex-col items-center pt-10">
-  <div class="max-w-md w-full bg-white rounded-lg shadow-md p-6">
-    <h1 class="text-2xl font-bold text-center mb-6">URL to PDF Converter</h1>
-
-    <form id="convertForm" class="mb-6">
-      <div class="mb-4">
-        <label for="url" class="block text-gray-700 text-sm font-bold mb-2">Enter URLs (one per line):</label>
-        <textarea id="url" name="url" required
-          class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-          placeholder="https://example.com&#10;https://another.com"
-          rows="5"></textarea>
-      </div>
-
-      <button type="submit"
-              class="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-        Convert to PDF
-      </button>
-    </form>
-
-    <div id="loader" class="loader"></div>
-
-    <div id="result" class="hidden">
-      <div class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-4" role="alert">
-        <p>PDF generated successfully!</p>
-      </div>
-
-      <button id="convertAnother"
-              class="text-blue-500 hover:text-blue-700 underline">
-        Convert another URL
-      </button>
+  <div class="container">
+    <div class="background-image">
+      <img src="grey-cat-looking-at-camera-inside-a-home.jpg" alt="Wandering Background Image">
     </div>
-
-    <div id="error" class="hidden bg-red-100 border-l-4 border-red-500 text-red-700 p-4" role="alert">
-      <p id="errorMessage"></p>
+    <div class="max-w-md w-full bg-white rounded-lg shadow-md p-6 relative">
+      <h1 class="text-2xl font-bold text-center mb-6">⭐ Bonjour Anne ⭐</h1>
+      <form id="convertForm" class="mb-6">
+        <div class="mb-4">
+          <label for="url" class="block text-gray-700 text-sm font-bold mb-2">Mets tes urls stp:</label>
+          <textarea id="url" name="url" required
+            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            placeholder="c'est ici qu'il faut coller&#10;tu peux en mettre un deuxième là"
+            rows="5"></textarea>
+        </div>
+        <button type="submit"
+          class="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+          Convert to PDF
+        </button>
+      </form>
+      <div id="loader" class="loader"></div>
+      <div id="result" class="hidden">
+        <div class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-4" role="alert">
+          <p>PDF generated successfully!</p>
+        </div>
+        <button id="convertAnother"
+          class="text-blue-500 hover:text-blue-700 underline">
+          Convert another URL
+        </button>
+      </div>
+      <div id="error" class="hidden bg-red-100 border-l-4 border-red-500 text-red-700 p-4" role="alert">
+        <p id="errorMessage"></p>
+      </div>
     </div>
   </div>
 
@@ -75,9 +100,8 @@
         // Reset UI
         result.classList.add('hidden');
         error.classList.add('hidden');
-
-        // Show loader
         loader.style.display = 'block';
+
         const urlInput = document.getElementById('url');
         const urls = urlInput.value
           .split('\n')
@@ -94,22 +118,21 @@
           });
 
           if (response.ok) {
-            // Hide loader
             loader.style.display = 'none';
-
-            // Show result
             result.classList.remove('hidden');
-
-            // Hide form
             convertForm.classList.add('hidden');
 
-            // Trigger download
             const blob = await response.blob();
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
+            const date = new Date().toLocaleDateString('fr-FR', {
+              day: '2-digit',
+              month: '2-digit',
+              year: 'numeric'
+            });
             a.style.display = 'none';
             a.href = url;
-            a.download = 'converted.pdf'; // Set the desired filename
+            a.download = `Articles Wansquare du ${date}.zip`;
             document.body.appendChild(a);
             a.click();
             window.URL.revokeObjectURL(url);
@@ -118,25 +141,59 @@
             throw new Error(data.error || 'Failed to convert URL to PDF');
           }
         } catch (err) {
-          // Hide loader
           loader.style.display = 'none';
-
-          // Show error
           errorMessage.textContent = err.message;
           error.classList.remove('hidden');
         }
       });
 
       convertAnother.addEventListener('click', () => {
-        // Reset form
         convertForm.reset();
-
-        // Show form
         convertForm.classList.remove('hidden');
-
-        // Hide result
         result.classList.add('hidden');
       });
+
+      // DVD Logo-style bouncing image
+      function moveImageLikeDVDLogo() {
+        const img = document.querySelector('.background-image img');
+        const imgWidth = img.offsetWidth;
+        const imgHeight = img.offsetHeight;
+
+        let position = {
+          x: Math.random() * (window.innerWidth - imgWidth),
+          y: Math.random() * (window.innerHeight - imgHeight)
+        };
+
+        let velocity = {
+          x: 1 + Math.random() * 2,
+          y: 1 + Math.random() * 2
+        };
+
+        img.style.left = `${position.x}px`;
+        img.style.top = `${position.y}px`;
+
+        function update() {
+          if (position.x <= 0 || position.x + imgWidth >= window.innerWidth) {
+            velocity.x *= -1;
+          }
+
+          if (position.y <= 0 || position.y + imgHeight >= window.innerHeight) {
+            velocity.y *= -1;
+          }
+
+          position.x += velocity.x;
+          position.y += velocity.y;
+
+          img.style.left = `${position.x}px`;
+          img.style.top = `${position.y}px`;
+
+          requestAnimationFrame(update);
+        }
+
+        update();
+      }
+
+      moveImageLikeDVDLogo();
     });
   </script>
 </body>
