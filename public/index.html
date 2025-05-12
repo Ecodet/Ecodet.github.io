@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>je sais pas Ankor</title>
+  <title>Convertisseur W-Anne-Square</title>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
   <style>
     .loader {
@@ -58,25 +58,25 @@
       <h1 class="text-2xl font-bold text-center mb-6">⭐ Bonjour Anne ⭐</h1>
       <form id="convertForm" class="mb-6">
         <div class="mb-4">
-          <label for="url" class="block text-gray-700 text-sm font-bold mb-2">Mets tes urls stp:</label>
+          <label for="url" class="block text-gray-700 text-sm font-bold mb-2">Colle les liens des articles ci-dessous :</label>
           <textarea id="url" name="url" required
             class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder="c'est ici qu'il faut coller&#10;tu peux en mettre un deuxième là"
-            rows="5"></textarea>
+            placeholder="https://www.wansquare.com/article1&#10;https://www.wansquare.com/article2&#10;..."
+            rows="6"></textarea>
         </div>
         <button type="submit"
           class="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-          Convert to PDF
+          Convertir les articles en PDF
         </button>
       </form>
       <div id="loader" class="loader"></div>
       <div id="result" class="hidden">
         <div class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-4" role="alert">
-          <p>PDF generated successfully!</p>
+          <p>Et zou ! Articles téléchargés en PDF !</p>
         </div>
         <button id="convertAnother"
           class="text-blue-500 hover:text-blue-700 underline">
-          Convert another URL
+          Convertir d'autres articles
         </button>
       </div>
       <div id="error" class="hidden bg-red-100 border-l-4 border-red-500 text-red-700 p-4" role="alert">
@@ -86,6 +86,16 @@
   </div>
 
   <script>
+
+    // Add a bullet point only when something is pasted, not written manually
+
+    document.getElementById('url').addEventListener('paste', function(event) {
+      event.preventDefault();
+      const paste = (event.clipboardData || window.clipboardData).getData('text');
+      const urls = paste.split('\n').map(url => url.trim()).filter(url => url.length > 0);
+      const currentValue = this.value.trim();
+      this.value = currentValue + (currentValue ? '\n' : '') + urls.map(url => `• ${url}`).join('\n') + '\n';
+    });
     document.addEventListener('DOMContentLoaded', () => {
       const convertForm = document.getElementById('convertForm');
       const loader = document.getElementById('loader');
@@ -105,7 +115,7 @@
         const urlInput = document.getElementById('url');
         const urls = urlInput.value
           .split('\n')
-          .map(u => u.trim())
+          .map(u => u.replace(/^•\s*/, '').trim())
           .filter(u => u.length > 0);
 
         try {

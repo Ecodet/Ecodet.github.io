@@ -41,13 +41,13 @@ app.post('/convert', async (req, res) => {
             // Remove .html or any other extension at the end
             slug = slug.replace(/\.[a-zA-Z0-9]+$/, "");
             // Remove leading numbers and dash
-            const noNumbers_ = slug.replace(/^\d+-/, "");
-            const noNumbers = noNumbers_.replace(/^\d+/, "");
+            const noNumbers = slug.replace(/^\d+-/, "").replace(/^\d+/, "");
             // Replace dashes with spaces
             const withSpaces = noNumbers.replace(/-/g, " ");
             // Capitalize first letter (optional)
             const capitalized = withSpaces.charAt(0).toUpperCase() + withSpaces.slice(1);
-            return `${capitalized}.pdf`;
+            // Return the cleaned filename with .pdf extension
+            return `${capitalized.trim()}.pdf`;
         }
 
         const pdfUrls = [];
@@ -78,7 +78,7 @@ app.post('/convert', async (req, res) => {
         await browser.close();
 
         if (pdfUrls.length === 0) {
-            return res.status(500).json({ error: 'No URLs could be converted.' });
+            return res.status(500).json({ error: 'Aucune URL n\'a pu être convertie.' });
         }
 
         // Create a ZIP file containing all PDFs
