@@ -40,7 +40,7 @@ app.post('/convert', async (req, res) => {
             let slug = url.split("/").filter(Boolean).pop();
             // Remove .html or any other extension at the end
             // Use a regular expression to remove everything after .html
-            slug = slug.replace(/\.html.*$/, "");
+            slug = slug.replace(/\.html[^\/]*$/, "");
             
             // Remove leading numbers and dash
             const noNumbers = slug.replace(/^\d+-/, "").replace(/^\d+/, "");
