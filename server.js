@@ -58,13 +58,22 @@ app.post('/convert', async (req, res) => {
             args: ['--no-sandbox', '--disable-setuid-sandbox']
         });
 
+        // Inside your /convert endpoint
         for (const url of urls) {
             try {
-                new URL(url); // validate
-                const filename = cleanFilenameFromUrl(url);
-                const outputPath = path.join(pdfDir, filename);
                 const page = await browser.newPage();
+                // Navigate to the URL and wait for redirects
                 await page.goto(url, { waitUntil: 'networkidle2', timeout: 60000 });
+
+                // Extract the final URL from the address bar
+                const finalUrl = page.url();
+                console.log(`Final URL after redirects: ${finalUrl}`);
+
+                const filename = cleanFilenameFromUrl(finalUrl);
+                const outputPath = path.join(pdfDir, filename);
+
+                // Navigate to the final URL to generate the PDF
+                await page.goto(finalUrl, { waitUntil: 'networkidle2', timeout: 60000 });
                 await page.pdf({
                     path: outputPath,
                     format: 'A4',
@@ -76,6 +85,7 @@ app.post('/convert', async (req, res) => {
                 console.warn(`Failed to process ${url}:`, err.message);
             }
         }
+
 
         await browser.close();
 
